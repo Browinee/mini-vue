@@ -3,7 +3,6 @@ import { reactive } from "../reactive";
 
 describe("effect", () => {
   it("happy path", () => {
-    debugger;
     const user = reactive({
       age: 10,
     });
@@ -14,5 +13,16 @@ describe("effect", () => {
     expect(nextAge).toBe(11);
     user.age++;
     expect(nextAge).toBe(12);
+  });
+  it("should return runner when call effect", () => {
+    let foo = 10;
+    const runner = effect(() => {
+      foo++;
+      return "foo";
+    });
+    expect(foo).toBe(11);
+    const response = runner();
+    expect(foo).toBe(12);
+    expect(response).toBe("foo");
   });
 });
