@@ -7,7 +7,7 @@ class ReactiveEffect {
   }
   run() {
     activeEffect = this;
-    this._fn();
+    return this._fn();
   }
 }
 const globalTargetMap = new Map();
@@ -36,4 +36,7 @@ export function trigger(target, key) {
 export function effect(fn) {
   const _effect = new ReactiveEffect(fn);
   _effect.run();
+  return () => _effect.run();
+  // or use following way to bind this
+  // return _effect.run.bind(_effect);
 }
