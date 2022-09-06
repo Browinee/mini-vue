@@ -39,9 +39,8 @@ export function trigger(target, key) {
     }
   }
 }
-export function effect(fn, options: { scheduler?: () => void }) {
-  const { scheduler = () => {} } = options;
-
+export function effect(fn, options?: { scheduler?: () => void }) {
+  const { scheduler = () => {} } = options || {};
   const _effect = new ReactiveEffect(fn, scheduler);
   _effect.run();
   return () => _effect.run();
