@@ -2,8 +2,10 @@ let activeEffect;
 
 class ReactiveEffect {
   private _fn: any;
-  constructor(fn) {
+  public scheduler?: () => void;
+  constructor(fn, scheduler) {
     this._fn = fn;
+    this.scheduler = scheduler;
   }
   run() {
     activeEffect = this;
@@ -30,11 +32,17 @@ export function trigger(target, key) {
   let depsMap = globalTargetMap.get(target);
   let deps = depsMap.get(key);
   for (const effect of deps) {
-    effect.run();
+    if (effect.scheduler) {
+      effect.scheduler();
+    } else {
+      effect.run();
+    }
   }
 }
-export function effect(fn) {
-  const _effect = new ReactiveEffect(fn);
+export function effect(fn, options: { scheduler?: () => void }) {
+  const { scheduler = () => {} } = options;
+
+  const _effect = new ReactiveEffect(fn, scheduler);
   _effect.run();
   return () => _effect.run();
   // or use following way to bind this
