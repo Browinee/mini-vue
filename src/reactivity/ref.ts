@@ -54,3 +54,24 @@ export function isRef(ref) {
 export function unRef(ref) {
   return isRef(ref) ? ref.value : ref;
 }
+
+/**
+ * Note: in template, we don't need to
+ * use ref variable with value, we could
+ * just use ref variable.
+ */
+export function proxyRefs(objectWithRefs) {
+  return new Proxy(objectWithRefs, {
+    get(target, key) {
+      return unRef(Reflect.get(target, key));
+    },
+
+    set(target, key, value) {
+      if (isRef(target[key]) && !isRef(value)) {
+        return (target[key].value = value);
+      } else {
+        return Reflect.set(target, key, value);
+      }
+    },
+  });
+}
