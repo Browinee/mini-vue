@@ -1,4 +1,4 @@
-import { extend } from "./shared";
+import { extend } from "../shared";
 
 let activeEffect;
 let shouldTrack;
@@ -90,7 +90,7 @@ export function triggerEffects(deps) {
 
 export function effect(
   fn,
-  options?: { scheduler?: () => void; onStop: () => void }
+  options?: { scheduler?: () => void; onStop?: () => void }
 ) {
   const { scheduler } = options || {};
   const _effect: any = new ReactiveEffect(fn, scheduler);

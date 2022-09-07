@@ -1,6 +1,6 @@
 import { track, trigger } from "./effect";
 import { reactive, readOnly } from "./reactive";
-import { extend, isObject } from "./shared";
+import { extend, isObject } from "../shared";
 
 // NOTE: this way, get , set , readonlyGet
 // won't re-create every time.
