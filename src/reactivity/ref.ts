@@ -11,7 +11,7 @@ import { reactive } from "./reactive";
 class RefImpl {
   private _value: any;
   private _rawValue: any;
-
+  public __v_ifRef: boolean = true;
   public deps: Set<any>;
   constructor(value) {
     // NOTE: value => reactvie value
@@ -45,4 +45,12 @@ function trackRefValue(ref: RefImpl) {
 
 export function ref(value) {
   return new RefImpl(value);
+}
+
+export function isRef(ref) {
+  return !!ref.__v_ifRef;
+}
+
+export function unRef(ref) {
+  return isRef(ref) ? ref.value : ref;
 }
