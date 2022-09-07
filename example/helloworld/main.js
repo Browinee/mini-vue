@@ -3,6 +3,5 @@ import {App} from "./app.js"
 
 
 const rootContainer = document.querySelector("#app")
-console.log("rootContainer", rootContainer);
 createApp(App).mount(rootContainer);
 
