@@ -64,7 +64,8 @@ describe("effect", () => {
     // obj.prop++ => obj.prop = obj.prop + 1
     // would trigger both getter and setter.
     // when onStop, it would remove effect
-    // but obj.prop + 1 would trigger track again.
+    // but obj.prop + 1, obj.prop(getter) would track again
+    // then obj.prop + 1 (setter)
     obj.prop = obj.prop + 1;
     expect(dummy).toBe(2);
     runner();

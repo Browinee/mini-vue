@@ -14,9 +14,14 @@ class ReactiveEffect {
     this.scheduler = scheduler;
   }
   run() {
+    //  NOTE:  stop: already remove deps and no need for track, just trigger fn
     if (!this._active) {
+      // NOTE: this would trigger getter function and track, but
+      // in this time, shouldTrack is false, so it won't trigger track
       return this._fn();
     }
+
+    // NOTE: not stop
     activeEffect = this;
     shouldTrack = true;
     const result = this._fn();
@@ -39,6 +44,7 @@ function cleanupEffect(effect) {
   });
   effect.deps.length = 0;
 }
+
 const globalTargetMap = new Map();
 export function track(target, key) {
   if (!isTracking()) return;
