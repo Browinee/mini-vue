@@ -28,7 +28,7 @@ function mountElement(vnode: any, container: any) {
   if (typeof children === "string") {
     el.textContent = children;
   } else if (Array.isArray(children)) {
-    mountChildren(vnode, container);
+    mountChildren(vnode, el);
   }
   for (const key in props) {
     const val = props[key];
