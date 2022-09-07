@@ -10,7 +10,6 @@ export function render(vnode, container) {
 function patch(vnode, container) {
   // NOTE: check if vnode is element or component
   const { shapeFlag } = vnode;
-
   if (shapeFlag & ShapeFlags.ELEMENT) {
     processElement(vnode, container);
   } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {

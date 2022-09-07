@@ -4,3 +4,5 @@ export const enum ShapeFlags {
   TEXT_CHILDREN = 1 << 2, // 0100
   ARRAY_CHILDREN = 1 << 3, // 1000
 }
+
+// https://juejin.cn/post/7074198132686487582
