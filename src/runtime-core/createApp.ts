@@ -6,7 +6,7 @@ export function createApp(rootComponent) {
     mount(rootContainer) {
       //NOTE: vnode
       const vnode = createVNode(rootComponent);
-      render(vnode, rootComponent);
+      render(vnode, rootContainer);
       // NOTE: component -> vnode
       //NOTE:  manipulate vnode
     },
