@@ -16,8 +16,7 @@ const renderer = createRenderer({
       return rect;
     }
   },
-  patchProps(el, key, val){
-    console.log("el", {el, key, val});
+  patchProp(el, key, val){
     el[key] = val
   },
   insert(el, parent){
