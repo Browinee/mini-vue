@@ -16,9 +16,9 @@ export function initSlots(instance, children) {
 function normalizeObjectSlots(children, slots) {
   for (const key in children) {
     const value = children[key];
-    slots[key] = (props) => normailizeSlotValue(value(props));
+    slots[key] = (props) => normalizeSlotValue(value(props));
   }
 }
-function normailizeSlotValue(value) {
+function normalizeSlotValue(value) {
   return Array.isArray(value) ? value : [value];
 }
