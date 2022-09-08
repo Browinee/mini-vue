@@ -1,4 +1,4 @@
-import {h} from "../../lib/guide-mini-vue.esm.js"
+import {h, createTextVNode} from "../../lib/guide-mini-vue.esm.js"
 import {Foo} from "./foo.js"
 
 export const App = {
@@ -7,7 +7,7 @@ export const App = {
    const app = h("div", {}, "App")
    // named slot
    const foo= h(Foo, {}, {
-    header: ({age}) => h("p", {}, "header: " + age),
+    header: ({age}) => [h("p", {}, "header: " + age), createTextVNode("Hello!")],
     footer: () => h("p", {}, "footer"),
    })
   //  const foo= h(Foo, {}, [h("p", {}, "123"), h("p", {}, "456")])

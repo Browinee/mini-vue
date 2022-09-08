@@ -1,6 +1,7 @@
 import { ShapeFlags } from "src/shared/ShapeFlags";
 import { isObject } from "./../shared/index";
 import { createComponentInstance, setupComponent } from "./component";
+import { Fragment, Text } from "./vnode";
 
 export function render(vnode, container) {
   //NOTE: patch
@@ -8,12 +9,23 @@ export function render(vnode, container) {
 }
 
 function patch(vnode, container) {
-  // NOTE: check if vnode is element or component
-  const { shapeFlag } = vnode;
-  if (shapeFlag & ShapeFlags.ELEMENT) {
-    processElement(vnode, container);
-  } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
-    processComponent(vnode, container);
+  const { type, shapeFlag } = vnode;
+  // NOTE: fragment -> only render children
+  switch (type) {
+    case Fragment:
+      processFragment(vnode, container);
+      break;
+    case Text:
+      processText(vnode, container);
+      break;
+    default:
+      // NOTE: check if vnode is element or component
+      if (shapeFlag & ShapeFlags.ELEMENT) {
+        processElement(vnode, container);
+      } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
+        processComponent(vnode, container);
+      }
+      break;
   }
 }
 function processComponent(vnode: any, container: any) {
@@ -61,4 +73,12 @@ function setupRenderEffect(instance: any, vnode, container: any) {
   patch(subTree, container);
   // NOTE: element -> mount
   vnode.el = subTree.el;
+}
+function processFragment(vnode: any, container: any) {
+  mountChildren(vnode, container);
+}
+function processText(vnode: any, container: any) {
+  const { children } = vnode;
+  const textNode = (vnode.el = document.createTextNode(children));
+  container.append(textNode);
 }
