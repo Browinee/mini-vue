@@ -1,11 +1,10 @@
 import { ShapeFlags } from "src/shared/ShapeFlags";
-import { isObject } from "./../shared/index";
 import { createComponentInstance, setupComponent } from "./component";
 import { Fragment, Text } from "./vnode";
 
-export function render(vnode, container, parentComponent) {
+export function render(vnode, container) {
   //NOTE: patch
-  patch(vnode, container, parentComponent);
+  patch(vnode, container, null);
 }
 
 function patch(vnode, container, parentComponent) {
