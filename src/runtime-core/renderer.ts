@@ -18,12 +18,18 @@ export function createRenderer(options) {
     patch(null, vnode, container, null);
   }
 
-  function patch(n1, n2, container, parentComponent) {
+  function patch(
+    n1,
+    n2,
+    container = null,
+    anchor = null,
+    parentComponent = null
+  ) {
     const { type, shapeFlag } = n2;
     // NOTE: fragment -> only render children
     switch (type) {
       case Fragment:
-        processFragment(n1, n2, container, parentComponent);
+        processFragment(n1, n2, container);
         break;
       case Text:
         processText(n1, n2, container);
@@ -31,7 +37,7 @@ export function createRenderer(options) {
       default:
         // NOTE: check if vnode is element or component
         if (shapeFlag & ShapeFlags.ELEMENT) {
-          processElement(n1, n2, container, parentComponent);
+          processElement(n1, n2, container, anchor, parentComponent);
         } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
           processComponent(n1, n2, container, parentComponent);
         }
@@ -42,22 +48,28 @@ export function createRenderer(options) {
     mountComponent(n2, container, parentComponent);
   }
 
-  function processElement(n1, n2: any, container: any, parentComponent: any) {
+  function processElement(
+    n1,
+    n2: any,
+    container: any,
+    anchor,
+    parentComponent: any
+  ) {
     if (!n1) {
       mountElement(n2, container, parentComponent);
     } else {
-      patchElement(n1, n2, container, parentComponent);
+      patchElement(n1, n2, container, anchor, parentComponent);
     }
   }
 
-  function patchElement(n1, n2, container, parentComponent) {
+  function patchElement(n1, n2, container, anchor, parentComponent) {
     const oldProps = n1.props || EMPTY_OBJ;
     const newProps = n2.props || EMPTY_OBJ;
     const el = (n2.el = n1.el);
-    patchChildren(n1, n2, el, parentComponent);
+    patchChildren(n1, n2, el, anchor, parentComponent);
     patchProps(el, oldProps, newProps);
   }
-  function patchChildren(n1, n2, container, parentComponent) {
+  function patchChildren(n1, n2, container, anchor, parentComponent) {
     console.log("patchChildren", { n1, n2, container });
     const { shapeFlag } = n2;
     const prevShapeFlag = n1.shapeFlag;
@@ -73,7 +85,156 @@ export function createRenderer(options) {
     } else {
       if (prevShapeFlag & ShapeFlags.TEXT_CHILDREN) {
         hostSetElementText(container, "");
-        mountChildren(c2, container, parentComponent);
+        mountChildren(c2, container);
+      } else {
+        patchKeyedChildren(c1, c2, container, anchor, parentComponent);
+      }
+    }
+  }
+  function patchKeyedChildren(
+    c1: any[],
+    c2: any[],
+    container,
+    parentAnchor,
+    parentComponent
+  ) {
+    let i = 0;
+    const l2 = c2.length;
+    let e1 = c1.length - 1;
+    let e2 = l2 - 1;
+
+    const isSameVNodeType = (n1, n2) => {
+      return n1.type === n2.type && n1.key === n2.key;
+    };
+
+    while (i <= e1 && i <= e2) {
+      const prevChild = c1[i];
+      const nextChild = c2[i];
+
+      if (!isSameVNodeType(prevChild, nextChild)) {
+        console.log("Two different children(from left to right");
+        console.log(`prevChild:${prevChild}`);
+        console.log(`nextChild:${nextChild}`);
+        break;
+      }
+
+      console.log(
+        "Two same children, then compare these two(from left to right "
+      );
+      patch(prevChild, nextChild, container, parentAnchor, parentComponent);
+      i++;
+    }
+
+    while (i <= e1 && i <= e2) {
+      // 从右向左取值
+      const prevChild = c1[e1];
+      const nextChild = c2[e2];
+
+      if (!isSameVNodeType(prevChild, nextChild)) {
+        console.log("Two different children(from right to left)");
+        console.log(`prevChild:${prevChild}`);
+        console.log(`nextChild:${nextChild}`);
+        break;
+      }
+      console.log(
+        "Two same children, then compare these two(from right to left "
+      );
+      patch(prevChild, nextChild, container, parentAnchor, parentComponent);
+      e1--;
+      e2--;
+    }
+
+    if (i > e1 && i <= e2) {
+      const nextPos = e2 + 1;
+      const anchor = nextPos < l2 ? c2[nextPos].el : parentAnchor;
+      while (i <= e2) {
+        console.log(`create a new  vnode: ${c2[i].key}`);
+        patch(null, c2[i], container, anchor, parentComponent);
+        i++;
+      }
+    } else if (i > e2 && i <= e1) {
+      while (i <= e1) {
+        console.log(`delete current vnode: ${c1[i].key}`);
+        hostRemove(c1[i].el);
+        i++;
+      }
+    } else {
+      // ex:
+      // a,b,[c,d,e],f,g
+      // a,b,[e,c,d],f,g
+
+      let s1 = i;
+      let s2 = i;
+      const keyToNewIndexMap = new Map();
+      let moved = false;
+      let maxNewIndexSoFar = 0;
+
+      for (let i = s2; i <= e2; i++) {
+        const nextChild = c2[i];
+        keyToNewIndexMap.set(nextChild.key, i);
+      }
+
+      const toBePatched = e2 - s2 + 1;
+      let patched = 0;
+      const newIndexToOldIndexMap = new Array(toBePatched);
+      for (let i = 0; i < toBePatched; i++) newIndexToOldIndexMap[i] = 0;
+
+      for (i = s1; i <= e1; i++) {
+        const prevChild = c1[i];
+
+        if (patched >= toBePatched) {
+          hostRemove(prevChild.el);
+          continue;
+        }
+
+        let newIndex;
+        if (prevChild.key != null) {
+          newIndex = keyToNewIndexMap.get(prevChild.key);
+        } else {
+          for (let j = s2; j <= e2; j++) {
+            if (isSameVNodeType(prevChild, c2[j])) {
+              newIndex = j;
+              break;
+            }
+          }
+        }
+
+        if (newIndex === undefined) {
+          hostRemove(prevChild.el);
+        } else {
+          newIndexToOldIndexMap[newIndex - s2] = i + 1;
+
+          if (newIndex >= maxNewIndexSoFar) {
+            maxNewIndexSoFar = newIndex;
+          } else {
+            moved = true;
+          }
+
+          patch(prevChild, c2[newIndex], container, null, parentComponent);
+          patched++;
+        }
+      }
+
+      const increasingNewIndexSequence = moved
+        ? getSequence(newIndexToOldIndexMap)
+        : [];
+      let j = increasingNewIndexSequence.length - 1;
+
+      for (let i = toBePatched - 1; i >= 0; i--) {
+        const nextIndex = s2 + i;
+        const nextChild = c2[nextIndex];
+
+        const anchor = nextIndex + 1 < l2 ? c2[nextIndex + 1].el : parentAnchor;
+
+        if (newIndexToOldIndexMap[i] === 0) {
+          patch(null, nextChild, container, anchor, parentComponent);
+        } else if (moved) {
+          if (j < 0 || increasingNewIndexSequence[j] !== i) {
+            hostInsert(nextChild.el, container, anchor);
+          } else {
+            j--;
+          }
+        }
       }
     }
   }
@@ -109,7 +270,7 @@ export function createRenderer(options) {
     if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
       el.textContent = children;
     } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
-      mountChildren(vnode.children, el, parentComponent);
+      mountChildren(vnode.children, el);
     }
     const { props } = vnode;
     for (const key in props) {
@@ -141,8 +302,8 @@ export function createRenderer(options) {
     // container.append(el);
   }
 
-  function mountChildren(children, container, parentComponent) {
-    children.forEach((v) => patch(null, v, container, parentComponent));
+  function mountChildren(children, container) {
+    children.forEach((VNodeChildv) => patch(null, VNodeChildv, container));
   }
 
   function mountComponent(vnode: any, container: any, parentComponent: any) {
@@ -170,8 +331,8 @@ export function createRenderer(options) {
       }
     });
   }
-  function processFragment(n1, n2: any, container: any, parentComponent: any) {
-    mountChildren(n2.children, container, parentComponent);
+  function processFragment(n1, n2: any, container: any) {
+    mountChildren(n2.children, container);
   }
   function processText(n1, n2: any, container: any) {
     const { children } = n2;
@@ -181,4 +342,45 @@ export function createRenderer(options) {
   return {
     createApp: createAppAPI(render),
   };
+}
+
+function getSequence(arr: number[]): number[] {
+  const p = arr.slice();
+  const result = [0];
+  let i, j, u, v, c;
+  const len = arr.length;
+  for (i = 0; i < len; i++) {
+    const arrI = arr[i];
+    if (arrI !== 0) {
+      j = result[result.length - 1];
+      if (arr[j] < arrI) {
+        p[i] = j;
+        result.push(i);
+        continue;
+      }
+      u = 0;
+      v = result.length - 1;
+      while (u < v) {
+        c = (u + v) >> 1;
+        if (arr[result[c]] < arrI) {
+          u = c + 1;
+        } else {
+          v = c;
+        }
+      }
+      if (arrI < arr[result[u]]) {
+        if (u > 0) {
+          p[i] = result[u - 1];
+        }
+        result[u] = i;
+      }
+    }
+  }
+  u = result.length;
+  v = result[u - 1];
+  while (u-- > 0) {
+    result[u] = v;
+    v = p[v];
+  }
+  return result;
 }
