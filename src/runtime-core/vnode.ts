@@ -12,6 +12,8 @@ export function createVNode(type, props?, children?) {
     el: null,
     subTree: {},
     key: props && props.key,
+    component: null,
+    next: null,
   };
   if (typeof children === "string") {
     vnode.shapeFlag |= ShapeFlags.TEXT_CHILDREN;

@@ -45,9 +45,17 @@ export function createRenderer(options) {
     }
   }
   function processComponent(n1, n2: any, container: any, parentComponent: any) {
-    mountComponent(n2, container, parentComponent);
+    if (!n1) {
+      mountComponent(n2, container, parentComponent);
+    } else {
+      updateComponent(n1, n2);
+    }
   }
-
+  function updateComponent(n1, n2) {
+    const instance = (n2.component = n1.component);
+    instance.next = n2;
+    instance.update();
+  }
   function processElement(
     n1,
     n2: any,
@@ -307,12 +315,15 @@ export function createRenderer(options) {
   }
 
   function mountComponent(vnode: any, container: any, parentComponent: any) {
-    const instance = createComponentInstance(vnode, parentComponent);
+    const instance = (vnode.component = createComponentInstance(
+      vnode,
+      parentComponent
+    ));
     setupComponent(instance);
     setupRenderEffect(instance, vnode, container);
   }
   function setupRenderEffect(instance: any, vnode, container: any) {
-    effect(() => {
+    instance.update = effect(() => {
       if (!instance.isMounted) {
         console.log("init");
         const proxy = instance.proxy;
@@ -323,6 +334,12 @@ export function createRenderer(options) {
         instance.isMounted = true;
       } else {
         console.log("update");
+        // NOTE: next is the vnode about to update
+        const { next, vnode } = instance;
+        if (next) {
+          next.el = vnode.el;
+          updateComponentPreRender(instance, next);
+        }
         const proxy = instance.proxy;
         const subTree = instance.render.call(proxy);
         const prevSubTree = instance.subTree;
@@ -342,6 +359,11 @@ export function createRenderer(options) {
   return {
     createApp: createAppAPI(render),
   };
+}
+function updateComponentPreRender(instance, nextVNode) {
+  instance.vnode = nextVNode;
+  instance.next = null;
+  instance.props = nextVNode.props;
 }
 
 function getSequence(arr: number[]): number[] {
