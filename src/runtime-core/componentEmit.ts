@@ -1,4 +1,4 @@
-import { camelize, toHandlerKey } from "src/shared";
+import { camelize, toHandlerKey } from "../shared";
 
 // NOTE: instance already bind to emit
 //  component.emit = emit.bind(null, component) as any;

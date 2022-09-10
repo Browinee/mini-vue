@@ -1,4 +1,4 @@
-import { isObject } from "src/shared";
+import { isObject } from "../shared";
 import {
   mutableHandlers,
   ReactiveFlags,

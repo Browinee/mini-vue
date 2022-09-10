@@ -79,7 +79,7 @@ describe("parser", () => {
   test("should trhow error when lack end tag", () => {
     expect(() => {
       baseParse("<div><span></div>");
-    }).toThrow("loss end tag:span");
+    }).toThrow("loss end tag: span");
   });
   describe("Element", () => {
     test("simple div", () => {

@@ -3,7 +3,7 @@
  *
  */
 
-import { ShapeFlags } from "src/shared/ShapeFlags";
+import { ShapeFlags } from "../shared/ShapeFlags";
 
 export function initSlots(instance, children) {
   // NOTE: check if is slot
