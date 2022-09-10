@@ -23,3 +23,6 @@ export const toHandlerKey = (str: string) => {
 };
 
 export const EMPTY_OBJ = {};
+export const isString = (value) => typeof value === "string";
+
+export * from "./toDisplayString";

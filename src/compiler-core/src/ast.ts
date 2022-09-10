@@ -1,11 +1,29 @@
+import { CREATE_ELEMENT_VNODE } from "./runtimeHelpers";
+export const enum ElementTypes {
+  ELEMENT,
+}
 export const enum NodeTypes {
   INTERPOLATION,
   SIMPLE_EXPRESSION,
   ELEMENT,
   TEXT,
   ROOT,
+  COMPOUND_EXPRESSION,
 }
 export const enum TagTypes {
   START,
   END,
+}
+
+export function createVNodeCall(context, tag, props?, children?) {
+  if (context) {
+    context.helper(CREATE_ELEMENT_VNODE);
+  }
+
+  return {
+    type: NodeTypes.ELEMENT,
+    tag,
+    props,
+    children,
+  };
 }

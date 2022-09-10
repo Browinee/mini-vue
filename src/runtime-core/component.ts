@@ -51,12 +51,21 @@ function handleSetupResult(instance, setupResult: any) {
   }
   finishComponentSetup(instance);
 }
-function finishComponentSetup(instance: any) {
+function finishComponentSetup(instance) {
   const Component = instance.type;
-  if (Component.render) {
+
+  if (!instance.render) {
+    if (compile && !Component.render) {
+      if (Component.template) {
+        const template = Component.template;
+        Component.render = compile(template);
+      }
+    }
+
     instance.render = Component.render;
   }
 }
+
 let currentInstance = null;
 export function getCurrentInstance() {
   return currentInstance;
@@ -64,4 +73,8 @@ export function getCurrentInstance() {
 
 export function setCurrentInstance(instance) {
   currentInstance = instance;
+}
+let compile;
+export function registerRuntimeCompiler(_compile) {
+  compile = _compile;
 }
