@@ -111,7 +111,7 @@ function createParseContext(content: string) {
   };
 }
 function createRoot(children) {
-  return { children };
+  return { children, type: NodeTypes.ROOT };
 }
 function parseText(context: any): any {
   let endIndex = context.source.length;
